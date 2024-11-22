@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo to PDF with Deletion</title>
+  <title>Photo to PDF in Landscape</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <style>
     #video, #canvas {
@@ -122,14 +122,14 @@
       }
     }
 
-    // Save as combined PDF
+    // Save as combined PDF in landscape
     savePdfButton.addEventListener('click', () => {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
+      const pdf = new jsPDF({ orientation: 'landscape' });
 
       images.forEach((imgData, index) => {
         if (index > 0) pdf.addPage(); // Add new page for each image after the first
-        pdf.addImage(imgData, 'JPEG', 10, 10, 180, 160); // Adjust dimensions as needed
+        pdf.addImage(imgData, 'JPEG', 10, 10, 270, 180); // Adjust dimensions for landscape
       });
 
       pdf.save('photos.pdf');
