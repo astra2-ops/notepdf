@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Switch Camera and Save PDF</title>
+  <title>High-Resolution PDF</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <style>
     #video, #canvas {
@@ -46,7 +46,7 @@
   </style>
 </head>
 <body>
-  <h1>Switch Camera and Save as PDF</h1>
+  <h1>Capture Photos and Save High-Resolution PDF</h1>
   <video id="video" autoplay></video>
   <canvas id="canvas" style="display: none;"></canvas>
   <div id="thumbnails"></div>
@@ -139,17 +139,27 @@
       startCamera(useFrontCamera ? 'user' : 'environment');
     });
 
-    // Save as combined PDF
+    // Save as combined PDF with full image resolution
     savePdfButton.addEventListener('click', () => {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation: 'landscape' });
+      const pdf = new jsPDF();
 
       images.forEach((imgData, index) => {
-        if (index > 0) pdf.addPage(); // Add new page for each image after the first
-        pdf.addImage(imgData, 'JPEG', 10, 10, 270, 180); // Adjust dimensions for landscape
-      });
+        const img = new Image();
+        img.src = imgData;
 
-      pdf.save('photos.pdf');
+        img.onload = () => {
+          const imgWidth = img.width * 0.264583; // Convert pixels to mm
+          const imgHeight = img.height * 0.264583;
+
+          if (index > 0) pdf.addPage(); // Add new page for each image after the first
+          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight); // Full resolution
+          
+          if (index === images.length - 1) {
+            pdf.save('photos.pdf');
+          }
+        };
+      });
     });
 
     // Start with the front camera
