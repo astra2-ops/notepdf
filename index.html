@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>High-Resolution PDF</title>
+  <title>Landscape High-Resolution PDF</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <style>
     #video, #canvas {
@@ -46,7 +46,7 @@
   </style>
 </head>
 <body>
-  <h1>Capture Photos and Save High-Resolution PDF</h1>
+  <h1>Capture Photos and Save Landscape PDF</h1>
   <video id="video" autoplay></video>
   <canvas id="canvas" style="display: none;"></canvas>
   <div id="thumbnails"></div>
@@ -139,22 +139,33 @@
       startCamera(useFrontCamera ? 'user' : 'environment');
     });
 
-    // Save as combined PDF with full image resolution
+    // Save as combined PDF with landscape mode and upscaled images
     savePdfButton.addEventListener('click', () => {
       const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
+      const pdf = new jsPDF({ orientation: 'landscape' });
+
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
       images.forEach((imgData, index) => {
         const img = new Image();
         img.src = imgData;
 
         img.onload = () => {
-          const imgWidth = img.width * 0.264583; // Convert pixels to mm
-          const imgHeight = img.height * 0.264583;
+          // Calculate image dimensions to fit within the PDF page
+          const imgAspectRatio = img.width / img.height;
+          let imgWidth = pageWidth;
+          let imgHeight = pageHeight;
+
+          if (imgAspectRatio > pageWidth / pageHeight) {
+            imgHeight = pageWidth / imgAspectRatio; // Fit by width
+          } else {
+            imgWidth = pageHeight * imgAspectRatio; // Fit by height
+          }
 
           if (index > 0) pdf.addPage(); // Add new page for each image after the first
-          pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight); // Full resolution
-          
+          pdf.addImage(imgData, 'JPEG', (pageWidth - imgWidth) / 2, (pageHeight - imgHeight) / 2, imgWidth, imgHeight);
+
           if (index === images.length - 1) {
             pdf.save('photos.pdf');
           }
