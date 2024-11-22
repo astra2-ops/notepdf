@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Photo to PDF</title>
+  <title>Multi-Photo to PDF</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <style>
     #video, #canvas {
@@ -15,13 +15,27 @@
     button {
       padding: 10px 20px;
       font-size: 16px;
+      margin: 5px;
+    }
+    #thumbnails {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .thumbnail {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border: 1px solid #ccc;
     }
   </style>
 </head>
 <body>
-  <h1>Capture Photo and Save as PDF</h1>
+  <h1>Capture Multiple Photos and Save as PDF</h1>
   <video id="video" autoplay></video>
   <canvas id="canvas" style="display: none;"></canvas>
+  <div id="thumbnails"></div>
   <button id="capture">Capture Photo</button>
   <button id="save-pdf" style="display: none;">Save as PDF</button>
 
@@ -30,7 +44,10 @@
     const canvas = document.getElementById('canvas');
     const captureButton = document.getElementById('capture');
     const savePdfButton = document.getElementById('save-pdf');
+    const thumbnailsDiv = document.getElementById('thumbnails');
     const ctx = canvas.getContext('2d');
+
+    const images = []; // Store captured images
 
     // Access the camera
     navigator.mediaDevices.getUserMedia({ video: true })
@@ -46,17 +63,30 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imgData = canvas.toDataURL('image/jpeg');
+      images.push(imgData);
+
+      // Show thumbnail
+      const thumbnail = document.createElement('img');
+      thumbnail.src = imgData;
+      thumbnail.className = 'thumbnail';
+      thumbnailsDiv.appendChild(thumbnail);
+
       savePdfButton.style.display = 'inline';
     });
 
-    // Save as PDF
+    // Save as combined PDF
     savePdfButton.addEventListener('click', () => {
-      const imgData = canvas.toDataURL('image/jpeg');
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF();
 
-      pdf.addImage(imgData, 'JPEG', 10, 10, 180, 160); // Adjust dimensions as needed
-      pdf.save('photo.pdf');
+      images.forEach((imgData, index) => {
+        if (index > 0) pdf.addPage(); // Add new page for each image after the first
+        pdf.addImage(imgData, 'JPEG', 10, 10, 180, 160); // Adjust dimensions as needed
+      });
+
+      pdf.save('photos.pdf');
     });
   </script>
 </body>
