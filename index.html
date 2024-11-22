@@ -3,56 +3,134 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Landscape High-Resolution PDF</title>
+  <title>Photo to Landscape PDF</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    #video, #canvas {
-      width: 100%;
-      max-width: 400px;
-      border: 1px solid #ccc;
-      margin-bottom: 10px;
+    body {
+      font-family: 'Roboto', sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5f5f5;
+      color: #333;
     }
+
+    h1 {
+      text-align: center;
+      color: #444;
+      margin-top: 20px;
+    }
+
+    #video, #canvas {
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+      max-width: 90%;
+    }
+
+    #controls {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
     button {
       padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
       font-size: 16px;
-      margin: 5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s ease;
     }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    #capture {
+      background-color: #4caf50;
+      color: white;
+    }
+
+    #capture:hover {
+      background-color: #45a045;
+    }
+
+    #switch-camera {
+      background-color: #2196f3;
+      color: white;
+    }
+
+    #switch-camera:hover {
+      background-color: #1e88e5;
+    }
+
+    #save-pdf {
+      background-color: #f44336;
+      color: white;
+      display: none;
+    }
+
+    #save-pdf:hover {
+      background-color: #e53935;
+    }
+
     #thumbnails {
-      display: flex;
-      flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* Adjusted size */
       gap: 10px;
-      margin-bottom: 10px;
+      margin: 20px;
+      width: 90%;
+      max-width: 500px;
     }
+
     .thumbnail-container {
       position: relative;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      overflow: hidden;
     }
+
     .thumbnail {
-      width: 100px;
-      height: 100px;
+      width: 60px; /* Smaller size */
+      height: 60px; /* Smaller size */
       object-fit: cover;
-      border: 1px solid #ccc;
     }
+
     .delete-btn {
       position: absolute;
-      top: 0;
-      right: 0;
-      background: red;
+      top: 5px;
+      right: 5px;
+      background: rgba(255, 0, 0, 0.8);
       color: white;
       border: none;
-      padding: 2px 5px;
+      padding: 5px 8px;
+      border-radius: 50%;
       font-size: 12px;
       cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .delete-btn:hover {
+      background-color: red;
     }
   </style>
 </head>
 <body>
-  <h1>Capture Photos and Save Landscape PDF</h1>
+  <h1>Photo to PDF Creator</h1>
   <video id="video" autoplay></video>
   <canvas id="canvas" style="display: none;"></canvas>
+  <div id="controls">
+    <button id="capture">Capture Photo</button>
+    <button id="switch-camera">Switch Camera</button>
+    <button id="save-pdf">Save as PDF</button>
+  </div>
   <div id="thumbnails"></div>
-  <button id="capture">Capture Photo</button>
-  <button id="switch-camera">Switch Camera</button>
-  <button id="save-pdf" style="display: none;">Save as PDF</button>
 
   <script>
     const video = document.getElementById('video');
@@ -139,7 +217,7 @@
       startCamera(useFrontCamera ? 'user' : 'environment');
     });
 
-    // Save as combined PDF with landscape mode and upscaled images
+    // Save as combined PDF with landscape mode
     savePdfButton.addEventListener('click', () => {
       const { jsPDF } = window.jspdf;
       const pdf = new jsPDF({ orientation: 'landscape' });
@@ -152,7 +230,6 @@
         img.src = imgData;
 
         img.onload = () => {
-          // Calculate image dimensions to fit within the PDF page
           const imgAspectRatio = img.width / img.height;
           let imgWidth = pageWidth;
           let imgHeight = pageHeight;
@@ -163,7 +240,7 @@
             imgWidth = pageHeight * imgAspectRatio; // Fit by height
           }
 
-          if (index > 0) pdf.addPage(); // Add new page for each image after the first
+          if (index > 0) pdf.addPage();
           pdf.addImage(imgData, 'JPEG', (pageWidth - imgWidth) / 2, (pageHeight - imgHeight) / 2, imgWidth, imgHeight);
 
           if (index === images.length - 1) {
