@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multi-Photo to PDF</title>
+  <title>Photo to PDF with Deletion</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
   <style>
     #video, #canvas {
@@ -12,22 +12,37 @@
       border: 1px solid #ccc;
       margin-bottom: 10px;
     }
-    button {
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 5px;
-    }
     #thumbnails {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
       margin-bottom: 10px;
     }
+    .thumbnail-container {
+      position: relative;
+      display: inline-block;
+    }
     .thumbnail {
       width: 100px;
       height: 100px;
       object-fit: cover;
       border: 1px solid #ccc;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 0;
+      right: 0;
+      background: red;
+      color: white;
+      border: none;
+      padding: 2px 5px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px;
     }
   </style>
 </head>
@@ -67,14 +82,45 @@
       const imgData = canvas.toDataURL('image/jpeg');
       images.push(imgData);
 
-      // Show thumbnail
-      const thumbnail = document.createElement('img');
-      thumbnail.src = imgData;
-      thumbnail.className = 'thumbnail';
-      thumbnailsDiv.appendChild(thumbnail);
-
+      addThumbnail(imgData, images.length - 1);
       savePdfButton.style.display = 'inline';
     });
+
+    // Add thumbnail with delete button
+    function addThumbnail(imgData, index) {
+      const container = document.createElement('div');
+      container.className = 'thumbnail-container';
+      container.dataset.index = index;
+
+      const img = document.createElement('img');
+      img.src = imgData;
+      img.className = 'thumbnail';
+
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = 'X';
+      deleteBtn.addEventListener('click', () => deleteImage(index));
+
+      container.appendChild(img);
+      container.appendChild(deleteBtn);
+      thumbnailsDiv.appendChild(container);
+    }
+
+    // Delete image
+    function deleteImage(index) {
+      images.splice(index, 1);
+      updateThumbnails();
+    }
+
+    // Update thumbnails after deletion
+    function updateThumbnails() {
+      thumbnailsDiv.innerHTML = ''; // Clear existing thumbnails
+      images.forEach((imgData, index) => addThumbnail(imgData, index));
+
+      if (images.length === 0) {
+        savePdfButton.style.display = 'none';
+      }
+    }
 
     // Save as combined PDF
     savePdfButton.addEventListener('click', () => {
